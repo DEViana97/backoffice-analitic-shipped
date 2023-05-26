@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { getImages } from "./service/imagesAcess";
-// import { FormImg } from "./FormImg";
 import "./App.css";
 
 const App = () => {
@@ -9,16 +8,17 @@ const App = () => {
   const [route, setRoute] = useState("");
   const [formData, setFormData] = useState([]);
   const [nextImage, setNextImage] = useState(0);
+  const [subdirectory, setSubdirectory] = useState("");
 
   const car = "car-1";
   const id = "event01";
   const type = "lixo";
 
   useEffect(() => {
-    getImages().then(async (data) => {
+    getImages(subdirectory).then((data) => {
       setImages(data);
     });
-  }, []);
+  }, [subdirectory]);
 
   useEffect(() => {
     const savedFormData = localStorage.getItem("formData");
@@ -31,6 +31,13 @@ const App = () => {
     const savedNextImage = localStorage.getItem("nextImage");
     if (savedNextImage) {
       setNextImage(parseInt(savedNextImage));
+    }
+  }, []);
+
+  useEffect(() => {
+    const savedSubdirectory = localStorage.getItem("subdirectory");
+    if (savedSubdirectory) {
+      setSubdirectory(savedSubdirectory);
     }
   }, []);
 
@@ -53,6 +60,11 @@ const App = () => {
 
     localStorage.setItem("formData", JSON.stringify(updatedFormData));
     localStorage.setItem("nextImage", nextImage.toString());
+    localStorage.setItem("subdirectory", subdirectory);
+
+    getImages(subdirectory).then((data) => {
+      setImages(data);
+    });
   }
 
   return (
@@ -78,7 +90,21 @@ const App = () => {
               value={route}
             />
           </label>
-          <button onClick={handleSubmit}>Cadastrar</button>
+          <label>
+            Subdiretório:
+            <input
+              onChange={(e) => setSubdirectory(e.target.value)}
+              type="text"
+              placeholder="Nome do subdiretório"
+              value={subdirectory}
+            />
+          </label>
+          <button
+            disabled={date && route ? false : true}
+            onClick={handleSubmit}
+          >
+            Cadastrar
+          </button>
           <button
             onClick={(e) => {
               e.preventDefault();
