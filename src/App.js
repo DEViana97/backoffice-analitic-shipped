@@ -58,7 +58,7 @@ const App = () => {
   return (
     <form>
       <div className="formContainer">
-        <img src={images[nextImage]} />
+        <img src={images[nextImage]} alt="imagem de um lixo" />
         <div className="inputForm">
           <label>
             Data e Hora:
