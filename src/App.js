@@ -46,7 +46,7 @@ const App = () => {
 
     const newFormData = {
       car: car,
-      date: date,
+      date: `${subdirectory}/05/2023 ${date}`,
       id: id,
       image_link: images[nextImage],
       route_id: route,
@@ -73,11 +73,11 @@ const App = () => {
         <img src={images[nextImage]} alt="imagem de um lixo" />
         <div className="inputForm">
           <label>
-            Data e Hora:
+            Hora:
             <input
               onChange={(e) => setDate(e.target.value)}
               type="text"
-              placeholder="00/00/00 00:00:00"
+              placeholder="00:00:00"
               value={date}
             />
           </label>

@@ -1,8 +1,6 @@
 import { storage } from "../firebaseConfig";
 
 export async function getImages(subdirectory) {
-  // const imagesArr = [];
-
   const refColection = storage.ref();
   const subdirectoryRef = refColection.child(subdirectory);
   const listImages = await subdirectoryRef.listAll();
