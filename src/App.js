@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import InputMask from "react-input-mask";
 import { getImages } from "./service/imagesAcess";
 import "./App.css";
+import { api } from "./api";
 
 const App = () => {
   const [images, setImages] = useState([]);
@@ -9,6 +11,8 @@ const App = () => {
   const [formData, setFormData] = useState([]);
   const [nextImage, setNextImage] = useState(0);
   const [subdirectory, setSubdirectory] = useState("");
+  const [imagesLength, setImagesLength] = useState(0);
+  const [dateFromImg, setDateFromImg] = useState("");
 
   const car = "car-1";
   const id = "event01";
@@ -17,24 +21,36 @@ const App = () => {
   useEffect(() => {
     getImages(subdirectory).then((data) => {
       setImages(data);
+      setImagesLength(data.length);
     });
   }, [subdirectory]);
+
+  const getDateFromImg = useCallback(async () => {
+    try {
+      const response = await api.post("/extract_date", {
+        url: images[nextImage],
+      });
+      setDateFromImg(response.data.date);
+    } catch (error) {
+      setDateFromImg("Insira a data manualmente");
+    }
+  }, [images, nextImage]);
+
+  useEffect(() => {
+    getDateFromImg();
+  }, [getDateFromImg]);
 
   useEffect(() => {
     const savedFormData = localStorage.getItem("formData");
     if (savedFormData) {
       setFormData(JSON.parse(savedFormData));
     }
-  }, []);
 
-  useEffect(() => {
     const savedNextImage = localStorage.getItem("nextImage");
     if (savedNextImage) {
       setNextImage(parseInt(savedNextImage));
     }
-  }, []);
 
-  useEffect(() => {
     const savedSubdirectory = localStorage.getItem("subdirectory");
     if (savedSubdirectory) {
       setSubdirectory(savedSubdirectory);
@@ -46,51 +62,64 @@ const App = () => {
 
     const newFormData = {
       car: car,
-      date: `${subdirectory}/05/2023 ${date}`,
+      date: dateFromImg,
       id: id,
       image_link: images[nextImage],
-      route_id: `Rota-${route}`,
+      route_id: `rota-${route}`,
       type: type,
     };
 
     const updatedFormData = [...formData, newFormData];
     setFormData(updatedFormData);
-    setDate("");
+    // setDate("");
     setRoute("");
 
     localStorage.setItem("formData", JSON.stringify(updatedFormData));
     localStorage.setItem("nextImage", nextImage.toString());
     localStorage.setItem("subdirectory", subdirectory);
 
-    getImages(subdirectory).then((data) => {
-      setImages(data);
-    });
+    getDateFromImg();
+  }
+
+  function handleNext(e) {
+    e.preventDefault();
+    setNextImage((prevNextImage) => prevNextImage + 1);
+    setImagesLength((prevImageLength) => prevImageLength - 1);
+  }
+
+  function handlePrev(e) {
+    e.preventDefault();
+    setNextImage((prevImage) => prevImage - 1);
+    setImagesLength((prevImage) => prevImage + 1);
   }
 
   return (
     <form>
       <div className="formContainer">
-        <img src={images[nextImage]} alt="imagem de um lixo" />
+        <div>
+          {subdirectory && <span>Imagens restantes: {imagesLength}</span>}
+          <img src={images[nextImage]} alt="imagem de um lixo" />
+        </div>
         <div className="inputForm">
-          <label>
-            Hora:
-            <input
-              onChange={(e) => setDate(e.target.value)}
+          <label className="time">
+            Data:
+            <InputMask
+              onChange={(e) => setDateFromImg(e.target.value)}
               type="text"
-              placeholder="00:00:00"
-              value={date}
+              value={dateFromImg}
             />
           </label>
-          <label>
+          <label className="route">
             Rota:
             <input
               onChange={(e) => setRoute(e.target.value)}
               type="text"
               placeholder="Rota-0"
               value={route}
+              required
             />
           </label>
-          <label>
+          <label className="day">
             Subdiretório:
             <input
               onChange={(e) => setSubdirectory(e.target.value)}
@@ -99,29 +128,25 @@ const App = () => {
               value={subdirectory}
             />
           </label>
-          <button
-            disabled={date && route ? false : true}
-            onClick={handleSubmit}
-          >
-            Cadastrar
-          </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setNextImage((prevImage) => prevImage - 1);
-            }}
-            disabled={nextImage === 0 ? true : false}
-          >
-            Prev
-          </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setNextImage((prevImage) => prevImage + 1);
-            }}
-          >
-            Next
-          </button>
+
+          <div className="buttonsContainer">
+            <button
+              onClick={handlePrev}
+              disabled={nextImage === 0 ? true : false}
+            >
+              Prev
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={nextImage === imagesLength ? true : false}
+            >
+              Next
+            </button>
+            <button onClick={handleSubmit} disabled={route ? false : true}>
+              {" "}
+              Cadastrar{" "}
+            </button>
+          </div>
         </div>
       </div>
     </form>

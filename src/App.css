@@ -5,18 +5,37 @@ form {
 }
 
 .formContainer {
-  display: flex;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
   justify-content: center;
   align-items: center;
+  gap: 8px;
+}
+
+span {
+  display: block;
+  color: #fff;
 }
 
 .inputForm {
-  display: flex;
-  justify-content: space-evenly;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-content: center;
   align-items: center;
-  flex-direction: column;
-  padding: 0 16px;
   gap: 8px;
+  height: 100%;
+}
+
+.time {
+  grid-column: 1/-1;
+}
+
+.route {
+  grid-column: 1/-1;
+}
+
+.day {
+  grid-column: 1/-1;
 }
 
 label {
@@ -26,7 +45,7 @@ label {
 }
 
 input {
-  width: 100%;
+  width: 90%;
   padding: 16px;
   border: 1px solid #0caba8;
   border-radius: 8px;
@@ -38,8 +57,15 @@ img {
   border-radius: 8px;
 }
 
+.buttonsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column: 1/-1;
+  gap: 8px;
+  width: 100%;
+}
+
 button {
-  width: 60%;
   padding: 16px;
   border: none;
   background-color: #0fc2c0;
@@ -47,6 +73,10 @@ button {
   color: #fff;
   font-size: 1rem;
   transition: opacity 0.3s;
+}
+
+.submitButton {
+  grid-column: 1/-1;
 }
 
 button:hover {
