@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
   "name": "backoff-analitic-shipped",
-=======
-  "name": "backoffice-analitic-shipped",
->>>>>>> e1669e7818103a7f1358abb4c2ca7f1eb321d5b1
   "version": "0.1.0",
   "private": true,
   "dependencies": {
