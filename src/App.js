@@ -6,8 +6,9 @@ import { api } from "./api";
 
 const App = () => {
   const [images, setImages] = useState([]);
-  const [date, setDate] = useState("");
   const [route, setRoute] = useState("");
+  const [eventType, setEventType] = useState("");
+  const [eventId, setEventId] = useState("");
   const [formData, setFormData] = useState([]);
   const [nextImage, setNextImage] = useState(0);
   const [subdirectory, setSubdirectory] = useState("");
@@ -15,14 +16,13 @@ const App = () => {
   const [dateFromImg, setDateFromImg] = useState("");
 
   const car = "car-1";
-  const id = "event01";
-  const type = "lixo";
 
   useEffect(() => {
     getImages(subdirectory).then((data) => {
       setImages(data);
       setImagesLength(data.length);
     });
+    setRoute("");
   }, [subdirectory]);
 
   const getDateFromImg = useCallback(async () => {
@@ -34,6 +34,7 @@ const App = () => {
     } catch (error) {
       setDateFromImg("Insira a data manualmente");
     }
+    console.log("aqui");
   }, [images, nextImage]);
 
   useEffect(() => {
@@ -62,29 +63,28 @@ const App = () => {
 
     const newFormData = {
       car: car,
-      date: dateFromImg,
-      id: id,
+      date: `${subdirectory.slice(0, 2)}-${subdirectory.slice(
+        2
+      )}-2023 ${dateFromImg}`,
+      id: eventType === "lixo" ? "event01" : "event02",
       image_link: images[nextImage],
       route_id: `rota-${route}`,
-      type: type,
+      type: eventType,
     };
 
     const updatedFormData = [...formData, newFormData];
     setFormData(updatedFormData);
-    // setDate("");
-    setRoute("");
+    setEventType("");
+    setEventId("");
 
     localStorage.setItem("formData", JSON.stringify(updatedFormData));
     localStorage.setItem("nextImage", nextImage.toString());
     localStorage.setItem("subdirectory", subdirectory);
 
-    getDateFromImg();
-  }
-
-  function handleNext(e) {
-    e.preventDefault();
     setNextImage((prevNextImage) => prevNextImage + 1);
     setImagesLength((prevImageLength) => prevImageLength - 1);
+
+    getDateFromImg();
   }
 
   function handlePrev(e) {
@@ -98,14 +98,18 @@ const App = () => {
       <div className="formContainer">
         <div>
           {subdirectory && <span>Imagens restantes: {imagesLength}</span>}
-          <img src={images[nextImage]} alt="imagem de um lixo" />
+          <img
+            src={images[nextImage]}
+            alt="imagem de um evento de lixo ou buraco"
+          />
         </div>
         <div className="inputForm">
           <label className="time">
-            Data:
+            Hora:
             <InputMask
               onChange={(e) => setDateFromImg(e.target.value)}
               type="text"
+              placeholder="00:00:00"
               value={dateFromImg}
             />
           </label>
@@ -114,8 +118,18 @@ const App = () => {
             <input
               onChange={(e) => setRoute(e.target.value)}
               type="text"
-              placeholder="Rota-0"
+              placeholder="rota-0"
               value={route}
+              required
+            />
+          </label>
+          <label className="event">
+            Tipo de evento:
+            <input
+              onChange={(e) => setEventType(e.target.value)}
+              type="text"
+              placeholder="ex: lixo"
+              value={eventType}
               required
             />
           </label>
@@ -137,14 +151,10 @@ const App = () => {
               Prev
             </button>
             <button
-              onClick={handleNext}
-              disabled={nextImage === imagesLength ? true : false}
+              onClick={handleSubmit}
+              disabled={dateFromImg && route && eventType ? false : true}
             >
-              Next
-            </button>
-            <button onClick={handleSubmit} disabled={route ? false : true}>
-              {" "}
-              Cadastrar{" "}
+              {dateFromImg && route && eventType ? "Cadastrar" : "Next"}
             </button>
           </div>
         </div>
