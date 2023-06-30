@@ -14,6 +14,7 @@ const App = () => {
   const [subdirectory, setSubdirectory] = useState("");
   const [imagesLength, setImagesLength] = useState(0);
   const [dateFromImg, setDateFromImg] = useState("");
+  const [autoSubmitActive, setAutoSubmitActive] = useState(false);
 
   const car = "car-1";
 
@@ -32,9 +33,8 @@ const App = () => {
       });
       setDateFromImg(response.data.date);
     } catch (error) {
-      setDateFromImg("Insira a data manualmente");
+      setDateFromImg("");
     }
-    console.log("aqui");
   }, [images, nextImage]);
 
   useEffect(() => {
@@ -58,15 +58,13 @@ const App = () => {
     }
   }, []);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-
+  const handleSubmit = useCallback(() => {
     const newFormData = {
       car: car,
       date: `${subdirectory.slice(0, 2)}-${subdirectory.slice(
         2
       )}-2023 ${dateFromImg}`,
-      id: eventType === "lixo" ? "event01" : "event02",
+      id: eventId,
       image_link: images[nextImage],
       route_id: `rota-${route}`,
       type: eventType,
@@ -74,23 +72,57 @@ const App = () => {
 
     const updatedFormData = [...formData, newFormData];
     setFormData(updatedFormData);
-    setEventType("");
-    setEventId("");
 
     localStorage.setItem("formData", JSON.stringify(updatedFormData));
     localStorage.setItem("nextImage", nextImage.toString());
     localStorage.setItem("subdirectory", subdirectory);
-
     setNextImage((prevNextImage) => prevNextImage + 1);
     setImagesLength((prevImageLength) => prevImageLength - 1);
+  }, [
+    subdirectory,
+    dateFromImg,
+    eventId,
+    images,
+    nextImage,
+    route,
+    eventType,
+    formData,
+  ]);
 
-    getDateFromImg();
+  useEffect(() => {
+    let timer;
+
+    if (autoSubmitActive) {
+      timer = setInterval(handleSubmit, 5000);
+    }
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [autoSubmitActive, handleSubmit]);
+
+  function handleNext(e) {
+    e.preventDefault();
+    setNextImage((prevNextImage) => prevNextImage + 1);
+    setImagesLength((prevImageLength) => prevImageLength - 1);
   }
 
   function handlePrev(e) {
     e.preventDefault();
+
+    const updatedFormData = [...formData];
+    updatedFormData.pop();
+    setFormData(updatedFormData);
+
+    getDateFromImg();
     setNextImage((prevImage) => prevImage - 1);
     setImagesLength((prevImage) => prevImage + 1);
+
+    localStorage.setItem("formData", JSON.stringify(updatedFormData));
+  }
+
+  function handleAutoSubmit() {
+    setAutoSubmitActive((prevAutoSubmitActive) => !prevAutoSubmitActive);
   }
 
   return (
@@ -100,7 +132,7 @@ const App = () => {
           {subdirectory && <span>Imagens restantes: {imagesLength}</span>}
           <img
             src={images[nextImage]}
-            alt="imagem de um evento de lixo ou buraco"
+            alt="Evento"
           />
         </div>
         <div className="inputForm">
@@ -109,6 +141,8 @@ const App = () => {
             <InputMask
               onChange={(e) => setDateFromImg(e.target.value)}
               type="text"
+              mask="99:99:99"
+              maskChar={""}
               placeholder="00:00:00"
               value={dateFromImg}
             />
@@ -123,16 +157,6 @@ const App = () => {
               required
             />
           </label>
-          <label className="event">
-            Tipo de evento:
-            <input
-              onChange={(e) => setEventType(e.target.value)}
-              type="text"
-              placeholder="ex: lixo"
-              value={eventType}
-              required
-            />
-          </label>
           <label className="day">
             Subdiretório:
             <input
@@ -142,23 +166,83 @@ const App = () => {
               value={subdirectory}
             />
           </label>
-
-          <div className="buttonsContainer">
+          <div className="event">
             <button
-              onClick={handlePrev}
-              disabled={nextImage === 0 ? true : false}
+              onClick={(e) => {
+                e.preventDefault();
+                setEventType("placa");
+                setEventId("event02");
+              }}
+              style={{ background: eventType === "placa" && "#EA906C" }}
             >
-              Prev
+              Placa
             </button>
             <button
-              onClick={handleSubmit}
-              disabled={dateFromImg && route && eventType ? false : true}
+              onClick={(e) => {
+                e.preventDefault();
+
+                setEventType("lixo");
+                setEventId("event01");
+              }}
+              style={{ background: eventType === "lixo" && "#EA906C" }}
             >
-              {dateFromImg && route && eventType ? "Cadastrar" : "Next"}
+              Lixo
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setEventType("polda");
+                setEventId("event03");
+              }}
+              style={{ background: eventType === "polda" && "#EA906C" }}
+            >
+              Polda
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setEventType("entulho");
+                setEventId("event04");
+              }}
+              style={{ background: eventType === "entulho" && "#EA906C" }}
+            >
+              Entulho
             </button>
           </div>
         </div>
       </div>
+      {subdirectory && (
+        <div className="buttonsContainer">
+          <button
+            onClick={handlePrev}
+            disabled={nextImage === 0 ? true : false}
+          >
+            Prev
+          </button>
+          <button onClick={handleNext}>Next</button>
+
+          <button
+            onClick={handleSubmit}
+            disabled={dateFromImg && route ? false : true}
+            className="submitButton"
+          >
+            Cadastrar
+          </button>
+
+          {!autoSubmitActive && (
+            <button onClick={handleAutoSubmit}>Auto Submit</button>
+          )}
+
+          {autoSubmitActive && (
+            <button
+              style={{ background: autoSubmitActive && "#EA906C" }}
+              onClick={handleAutoSubmit}
+            >
+              Stop Auto Submit
+            </button>
+          )}
+        </div>
+      )}
     </form>
   );
 };
