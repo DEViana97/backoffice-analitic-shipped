@@ -4,12 +4,12 @@ import "firebase/storage";
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://firebase.google.com/docs/web/learn-more#config-object
 const firebaseConfig = {
-  apiKey: "AIzaSyDJGJdZ0NaVy5pFpidUuoIEfU08hMZwDXs",
-  authDomain: "backoff-analitic-test.firebaseapp.com",
-  projectId: "backoff-analitic-test",
-  storageBucket: "backoff-analitic-test.appspot.com",
-  messagingSenderId: "475409811121",
-  appId: "1:475409811121:web:32d822f51e784291338490",
+  apiKey: "AIzaSyC2eW7Jakhcar-qL-zlS1k_NnLwebbTIkw",
+  authDomain: "rotas-de-lixo.firebaseapp.com",
+  projectId: "rotas-de-lixo",
+  storageBucket: "rotas-de-lixo.appspot.com",
+  messagingSenderId: "111295533220",
+  appId: "1:111295533220:web:4143b2baf8f9c8fba91631",
 };
 
 // Initialize Firebase

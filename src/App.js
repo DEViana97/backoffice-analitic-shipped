@@ -11,6 +11,7 @@ const App = () => {
   const [eventId, setEventId] = useState("");
   const [formData, setFormData] = useState([]);
   const [nextImage, setNextImage] = useState(0);
+  const [directory, setDirectory] = useState("");
   const [subdirectory, setSubdirectory] = useState("");
   const [imagesLength, setImagesLength] = useState(0);
   const [dateFromImg, setDateFromImg] = useState("");
@@ -19,21 +20,24 @@ const App = () => {
   const car = "car-1";
 
   useEffect(() => {
-    getImages(subdirectory).then((data) => {
+    getImages(directory, subdirectory).then((data) => {
       setImages(data);
       setImagesLength(data.length);
     });
-    setRoute("");
-  }, [subdirectory]);
+  }, [directory, subdirectory]);
 
   const getDateFromImg = useCallback(async () => {
-    try {
-      const response = await api.post("/extract_date", {
-        url: images[nextImage],
-      });
-      setDateFromImg(response.data.date);
-    } catch (error) {
-      setDateFromImg("");
+    if (nextImage >= 0 && images[nextImage]) {
+      try {
+        const response = await api.post("/extract_date", {
+          url: images[nextImage],
+        });
+        setDateFromImg(response.data.date);
+      } catch (error) {
+        setAutoSubmitActive(false);
+        setDateFromImg("");
+        alert("Digite manualmente");
+      }
     }
   }, [images, nextImage]);
 
@@ -52,48 +56,54 @@ const App = () => {
       setNextImage(parseInt(savedNextImage));
     }
 
-    const savedSubdirectory = localStorage.getItem("subdirectory");
-    if (savedSubdirectory) {
-      setSubdirectory(savedSubdirectory);
+    const savedDirectory = localStorage.getItem("Directory");
+    if (savedDirectory) {
+      setDirectory(savedDirectory);
     }
   }, []);
 
-  const handleSubmit = useCallback(() => {
-    const newFormData = {
-      car: car,
-      date: `${subdirectory.slice(0, 2)}-${subdirectory.slice(
-        2
-      )}-2023 ${dateFromImg}`,
-      id: eventId,
-      image_link: images[nextImage],
-      route_id: `rota-${route}`,
-      type: eventType,
-    };
+  const handleSubmit = useCallback(
+    (e) => {
+      if (e) {
+        e.preventDefault();
+      }
+      const newFormData = {
+        car: car,
+        date: `${directory.slice(0, 2)}-${directory.slice(
+          2
+        )}-2023 ${dateFromImg}`,
+        id: eventId,
+        image_link: images[nextImage],
+        route_id: `rota-${route}`,
+        type: eventType,
+      };
 
-    const updatedFormData = [...formData, newFormData];
-    setFormData(updatedFormData);
+      const updatedFormData = [...formData, newFormData];
+      setFormData(updatedFormData);
 
-    localStorage.setItem("formData", JSON.stringify(updatedFormData));
-    localStorage.setItem("nextImage", nextImage.toString());
-    localStorage.setItem("subdirectory", subdirectory);
-    setNextImage((prevNextImage) => prevNextImage + 1);
-    setImagesLength((prevImageLength) => prevImageLength - 1);
-  }, [
-    subdirectory,
-    dateFromImg,
-    eventId,
-    images,
-    nextImage,
-    route,
-    eventType,
-    formData,
-  ]);
+      localStorage.setItem("formData", JSON.stringify(updatedFormData));
+      localStorage.setItem("nextImage", nextImage.toString());
+      localStorage.setItem("directory", directory);
+      setNextImage((prevNextImage) => prevNextImage + 1);
+      setImagesLength((prevImageLength) => prevImageLength - 1);
+    },
+    [
+      directory,
+      dateFromImg,
+      eventId,
+      images,
+      nextImage,
+      route,
+      eventType,
+      formData,
+    ]
+  );
 
   useEffect(() => {
     let timer;
 
     if (autoSubmitActive) {
-      timer = setInterval(handleSubmit, 5000);
+      timer = setInterval(handleSubmit, 8000);
     }
 
     return () => {
@@ -129,11 +139,8 @@ const App = () => {
     <form>
       <div className="formContainer">
         <div>
-          {subdirectory && <span>Imagens restantes: {imagesLength}</span>}
-          <img
-            src={images[nextImage]}
-            alt="Evento"
-          />
+          {directory && <span>Imagens restantes: {imagesLength}</span>}
+          <img src={images[nextImage]} alt="Evento" />
         </div>
         <div className="inputForm">
           <label className="time">
@@ -158,11 +165,21 @@ const App = () => {
             />
           </label>
           <label className="day">
-            Subdiretório:
+            Data do evento:
+            <input
+              onChange={(e) => setDirectory(e.target.value)}
+              type="text"
+              placeholder="Nome do diretório"
+              value={directory}
+            />
+          </label>
+
+          <label className="day">
+            Tipo de evento:
             <input
               onChange={(e) => setSubdirectory(e.target.value)}
               type="text"
-              placeholder="Nome do subdiretório"
+              placeholder="Ex: lixo"
               value={subdirectory}
             />
           </label>
@@ -211,7 +228,7 @@ const App = () => {
           </div>
         </div>
       </div>
-      {subdirectory && (
+      {directory && (
         <div className="buttonsContainer">
           <button
             onClick={handlePrev}
@@ -222,7 +239,7 @@ const App = () => {
           <button onClick={handleNext}>Next</button>
 
           <button
-            onClick={handleSubmit}
+            onClick={(e) => handleSubmit(e)}
             disabled={dateFromImg && route ? false : true}
             className="submitButton"
           >
@@ -236,7 +253,7 @@ const App = () => {
           {autoSubmitActive && (
             <button
               style={{ background: autoSubmitActive && "#EA906C" }}
-              onClick={handleAutoSubmit}
+              onClick={(e) => handleSubmit(e)}
             >
               Stop Auto Submit
             </button>
