@@ -12,19 +12,41 @@ const App = () => {
   const [formData, setFormData] = useState([]);
   const [nextImage, setNextImage] = useState(0);
   const [directory, setDirectory] = useState("");
-  const [subdirectory, setSubdirectory] = useState("");
+  // const [subdirectory, setSubdirectory] = useState("");
   const [imagesLength, setImagesLength] = useState(0);
   const [dateFromImg, setDateFromImg] = useState("");
   const [autoSubmitActive, setAutoSubmitActive] = useState(false);
+  const [typeEvent, setTypeEvent] = useState("");
 
-  const car = "car-1";
+  const car = "carro-1";
+
+  const [monthSelected, setMonthSelected] = useState("");
+
+  const [daySelected, setDaySelected] = useState("");
+
+  const [yearSelected, setYearSelected] = useState("");
+
+  const handleChangeDay = (event) => {
+    setDaySelected(event.target.value);
+  };
+
+  const diasDoMes = Array.from({ length: 31 }, (_, index) => index + 1);
+
+  const handleChange = (event) => {
+    setMonthSelected(event.target.value);
+  };
 
   useEffect(() => {
-    getImages(directory, subdirectory).then((data) => {
-      setImages(data);
-      setImagesLength(data.length);
-    });
-  }, [directory, subdirectory]);
+    if (typeEvent) {
+      getImages(yearSelected, monthSelected, daySelected, typeEvent).then(
+        (data) => {
+          setImages(data);
+          setImagesLength(data.length);
+          setNextImage(0);
+        }
+      );
+    }
+  }, [yearSelected, monthSelected, daySelected, typeEvent]);
 
   const getDateFromImg = useCallback(async () => {
     if (nextImage >= 0 && images[nextImage]) {
@@ -56,7 +78,7 @@ const App = () => {
       setNextImage(parseInt(savedNextImage));
     }
 
-    const savedDirectory = localStorage.getItem("Directory");
+    const savedDirectory = localStorage.getItem("directory");
     if (savedDirectory) {
       setDirectory(savedDirectory);
     }
@@ -69,9 +91,7 @@ const App = () => {
       }
       const newFormData = {
         car: car,
-        date: `${directory.slice(0, 2)}-${directory.slice(
-          2
-        )}-2023 ${dateFromImg}`,
+        date: `${dateFromImg}`,
         id: eventId,
         image_link: images[nextImage],
         route_id: `rota-${route}`,
@@ -132,7 +152,7 @@ const App = () => {
   }
 
   function handleAutoSubmit() {
-    setAutoSubmitActive((prevAutoSubmitActive) => !prevAutoSubmitActive);
+    setAutoSubmitActive((prevAutoSubmitState) => !prevAutoSubmitState);
   }
 
   return (
@@ -148,7 +168,6 @@ const App = () => {
             <InputMask
               onChange={(e) => setDateFromImg(e.target.value)}
               type="text"
-              mask="99:99:99"
               maskChar={""}
               placeholder="00:00:00"
               value={dateFromImg}
@@ -164,23 +183,45 @@ const App = () => {
               required
             />
           </label>
-          <label className="day">
-            Data do evento:
-            <input
-              onChange={(e) => setDirectory(e.target.value)}
-              type="text"
-              placeholder="Nome do diretório"
-              value={directory}
-            />
-          </label>
 
+          <label>
+            <select
+              value={yearSelected}
+              onChange={(e) => setYearSelected(e.target.value)}
+            >
+              <option value="">Selecione o ano</option>
+              <option value="2023">2023</option>
+            </select>
+          </label>
+          <select value={monthSelected} onChange={handleChange}>
+            <option value="01">Janeiro</option>
+            <option value="02">Fevereiro</option>
+            <option value="03">Março</option>
+            <option value="04">Abril</option>
+            <option value="05">Maio</option>
+            <option value="06">Junho</option>
+            <option value="07">Julho</option>
+            <option value="08">Agosto</option>
+            <option value="09">Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
+          </select>
+
+          <select value={daySelected} onChange={handleChangeDay}>
+            {diasDoMes.map((day) => (
+              <option key={day} value={day}>
+                {day}
+              </option>
+            ))}
+          </select>
           <label className="day">
             Tipo de evento:
             <input
-              onChange={(e) => setSubdirectory(e.target.value)}
+              onChange={(e) => setTypeEvent(e.target.value)}
               type="text"
               placeholder="Ex: lixo"
-              value={subdirectory}
+              value={typeEvent}
             />
           </label>
           <div className="event">
@@ -208,12 +249,12 @@ const App = () => {
             <button
               onClick={(e) => {
                 e.preventDefault();
-                setEventType("polda");
+                setEventType("poda");
                 setEventId("event03");
               }}
-              style={{ background: eventType === "polda" && "#EA906C" }}
+              style={{ background: eventType === "poda" && "#EA906C" }}
             >
-              Polda
+              poda
             </button>
             <button
               onClick={(e) => {
@@ -253,7 +294,7 @@ const App = () => {
           {autoSubmitActive && (
             <button
               style={{ background: autoSubmitActive && "#EA906C" }}
-              onClick={(e) => handleSubmit(e)}
+              onClick={handleAutoSubmit}
             >
               Stop Auto Submit
             </button>
