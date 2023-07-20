@@ -39,6 +39,8 @@ const App = () => {
           setImages(data);
           setImagesLength(data.length);
           localStorage.removeItem("nextImage");
+          localStorage.removeItem("imagesLength");
+
           const saveImagesLength = localStorage.getItem("imagesLength");
           if (saveImagesLength) {
             setImagesLength(parseInt(saveImagesLength));
@@ -77,6 +79,24 @@ const App = () => {
     if (savedNextImage) {
       setNextImage(parseInt(savedNextImage));
     }
+
+    const savedTypeEvent = localStorage.getItem("typeEvent");
+    if (savedTypeEvent) {
+      setTypeEvent(savedTypeEvent);
+    }
+
+    const savedYearSelected = localStorage.getItem("yearSelected");
+    if (savedYearSelected) {
+      setYearSelected(savedYearSelected.toString());
+    }
+    const savedMonthSelected = localStorage.getItem("monthSelected");
+    if (savedMonthSelected) {
+      setMonthSelected(savedMonthSelected);
+    }
+    const savedDaySelected = localStorage.getItem("daySelected");
+    if (savedDaySelected) {
+      setDaySelected(savedDaySelected.toString());
+    }
   }, []);
 
   const handleSubmit = useCallback(
@@ -99,6 +119,11 @@ const App = () => {
       localStorage.setItem("formData", JSON.stringify(updatedFormData));
       localStorage.setItem("nextImage", nextImage.toString());
       localStorage.setItem("imagesLength", imagesLength.toString());
+      localStorage.setItem("typeEvent", typeEvent.toString());
+      localStorage.setItem("yearSelected", yearSelected.toString());
+      localStorage.setItem("daySelected", daySelected.toString());
+      localStorage.setItem("monthSelected", monthSelected.toString());
+
       setNextImage((prevNextImage) => prevNextImage + 1);
       setImagesLength((prevImageLength) => prevImageLength - 1);
     },
@@ -114,6 +139,7 @@ const App = () => {
       monthSelected,
       yearSelected,
       imagesLength,
+      typeEvent,
     ]
   );
 
@@ -121,7 +147,7 @@ const App = () => {
     let timer;
 
     if (autoSubmitActive && imagesLength > 0) {
-      timer = setInterval(handleSubmit, 5000);
+      timer = setInterval(handleSubmit, 9000);
     }
 
     return () => {
