@@ -11,8 +11,6 @@ const App = () => {
   const [eventId, setEventId] = useState("");
   const [formData, setFormData] = useState([]);
   const [nextImage, setNextImage] = useState(0);
-  const [directory, setDirectory] = useState("");
-  // const [subdirectory, setSubdirectory] = useState("");
   const [imagesLength, setImagesLength] = useState(0);
   const [dateFromImg, setDateFromImg] = useState("");
   const [autoSubmitActive, setAutoSubmitActive] = useState(false);
@@ -21,9 +19,7 @@ const App = () => {
   const car = "carro-1";
 
   const [monthSelected, setMonthSelected] = useState("");
-
   const [daySelected, setDaySelected] = useState("");
-
   const [yearSelected, setYearSelected] = useState("");
 
   const handleChangeDay = (event) => {
@@ -42,7 +38,11 @@ const App = () => {
         (data) => {
           setImages(data);
           setImagesLength(data.length);
-          setNextImage(0);
+          localStorage.removeItem("nextImage");
+          const saveImagesLength = localStorage.getItem("imagesLength");
+          if (saveImagesLength) {
+            setImagesLength(parseInt(saveImagesLength));
+          }
         }
       );
     }
@@ -77,11 +77,6 @@ const App = () => {
     if (savedNextImage) {
       setNextImage(parseInt(savedNextImage));
     }
-
-    const savedDirectory = localStorage.getItem("directory");
-    if (savedDirectory) {
-      setDirectory(savedDirectory);
-    }
   }, []);
 
   const handleSubmit = useCallback(
@@ -91,7 +86,7 @@ const App = () => {
       }
       const newFormData = {
         car: car,
-        date: `${dateFromImg}`,
+        date: `${daySelected}-${monthSelected}-${yearSelected} ${dateFromImg}`,
         id: eventId,
         image_link: images[nextImage],
         route_id: `rota-${route}`,
@@ -103,12 +98,11 @@ const App = () => {
 
       localStorage.setItem("formData", JSON.stringify(updatedFormData));
       localStorage.setItem("nextImage", nextImage.toString());
-      localStorage.setItem("directory", directory);
+      localStorage.setItem("imagesLength", imagesLength.toString());
       setNextImage((prevNextImage) => prevNextImage + 1);
       setImagesLength((prevImageLength) => prevImageLength - 1);
     },
     [
-      directory,
       dateFromImg,
       eventId,
       images,
@@ -116,20 +110,24 @@ const App = () => {
       route,
       eventType,
       formData,
+      daySelected,
+      monthSelected,
+      yearSelected,
+      imagesLength,
     ]
   );
 
   useEffect(() => {
     let timer;
 
-    if (autoSubmitActive) {
-      timer = setInterval(handleSubmit, 8000);
+    if (autoSubmitActive && imagesLength > 0) {
+      timer = setInterval(handleSubmit, 5000);
     }
 
     return () => {
       clearInterval(timer);
     };
-  }, [autoSubmitActive, handleSubmit]);
+  }, [autoSubmitActive, handleSubmit, imagesLength]);
 
   function handleNext(e) {
     e.preventDefault();
@@ -144,7 +142,7 @@ const App = () => {
     updatedFormData.pop();
     setFormData(updatedFormData);
 
-    getDateFromImg();
+    // getDateFromImg();
     setNextImage((prevImage) => prevImage - 1);
     setImagesLength((prevImage) => prevImage + 1);
 
@@ -159,7 +157,7 @@ const App = () => {
     <form>
       <div className="formContainer">
         <div>
-          {directory && <span>Imagens restantes: {imagesLength}</span>}
+          {typeEvent && <span>Imagens restantes: {imagesLength}</span>}
           <img src={images[nextImage]} alt="Evento" />
         </div>
         <div className="inputForm">
@@ -168,6 +166,7 @@ const App = () => {
             <InputMask
               onChange={(e) => setDateFromImg(e.target.value)}
               type="text"
+              mask="99:99:99"
               maskChar={""}
               placeholder="00:00:00"
               value={dateFromImg}
@@ -269,7 +268,7 @@ const App = () => {
           </div>
         </div>
       </div>
-      {directory && (
+      {dateFromImg && (
         <div className="buttonsContainer">
           <button
             onClick={handlePrev}
