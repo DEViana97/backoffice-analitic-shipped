@@ -10,6 +10,11 @@ export async function getImages(
   const year = refColection.child(anoSelecionado);
   const mounth = year.child(monthSelected);
   const day = mounth.child(daySelected);
+  const dayInfo = (await day.listAll()).prefixes;
+
+  for (const subfolder of dayInfo) {
+    console.log(subfolder.fullPath);
+  }
   const type = day.child(typeEvent);
 
   const listImages = await type.listAll();

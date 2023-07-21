@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import InputMask from "react-input-mask";
 import { getImages } from "./service/imagesAcess";
 import "./App.css";
-import { api } from "./api";
+// import { api } from "./api";
 
 const App = () => {
   const [images, setImages] = useState([]);
@@ -26,7 +26,11 @@ const App = () => {
     setDaySelected(event.target.value);
   };
 
-  const diasDoMes = Array.from({ length: 31 }, (_, index) => index + 1);
+  const diasDoMes = Array.from({ length: 31 }, (_, index) => index + 1).map(
+    (dia) => {
+      return dia < 10 ? "0" + dia : String(dia);
+    }
+  );
 
   const handleChange = (event) => {
     setMonthSelected(event.target.value);
@@ -38,8 +42,12 @@ const App = () => {
         (data) => {
           setImages(data);
           setImagesLength(data.length);
-          localStorage.removeItem("nextImage");
-          localStorage.removeItem("imagesLength");
+
+          const savedTypeEvent = localStorage.getItem("typeEvent");
+          if (savedTypeEvent !== typeEvent) {
+            localStorage.removeItem("nextImage");
+            localStorage.removeItem("imagesLength");
+          }
 
           const saveImagesLength = localStorage.getItem("imagesLength");
           if (saveImagesLength) {
@@ -50,24 +58,24 @@ const App = () => {
     }
   }, [yearSelected, monthSelected, daySelected, typeEvent]);
 
-  const getDateFromImg = useCallback(async () => {
-    if (nextImage >= 0 && images[nextImage]) {
-      try {
-        const response = await api.post("/extract_date", {
-          url: images[nextImage],
-        });
-        setDateFromImg(response.data.date);
-      } catch (error) {
-        setAutoSubmitActive(false);
-        setDateFromImg("");
-        alert("Digite manualmente");
-      }
-    }
-  }, [images, nextImage]);
+  // const getDateFromImg = useCallback(async () => {
+  //   if (nextImage >= 0 && images[nextImage]) {
+  //     try {
+  //       const response = await api.post("/extract_date", {
+  //         url: images[nextImage],
+  //       });
+  //       setDateFromImg(response.data.date);
+  //     } catch (error) {
+  //       setAutoSubmitActive(false);
+  //       setDateFromImg("");
+  //       alert("Digite manualmente");
+  //     }
+  //   }
+  // }, [images, nextImage]);
 
-  useEffect(() => {
-    getDateFromImg();
-  }, [getDateFromImg]);
+  // useEffect(() => {
+  //   getDateFromImg();
+  // }, [getDateFromImg]);
 
   useEffect(() => {
     const savedFormData = localStorage.getItem("formData");
@@ -143,17 +151,17 @@ const App = () => {
     ]
   );
 
-  useEffect(() => {
-    let timer;
+  // useEffect(() => {
+  //   let timer;
 
-    if (autoSubmitActive && imagesLength > 0) {
-      timer = setInterval(handleSubmit, 9000);
-    }
+  //   if (autoSubmitActive && imagesLength > 0) {
+  //     timer = setInterval(handleSubmit, 5000);
+  //   }
 
-    return () => {
-      clearInterval(timer);
-    };
-  }, [autoSubmitActive, handleSubmit, imagesLength]);
+  //   return () => {
+  //     clearInterval(timer);
+  //   };
+  // }, [autoSubmitActive, handleSubmit, imagesLength]);
 
   function handleNext(e) {
     e.preventDefault();
@@ -294,7 +302,7 @@ const App = () => {
           </div>
         </div>
       </div>
-      {dateFromImg && (
+      {(dateFromImg || route) && (
         <div className="buttonsContainer">
           <button
             onClick={handlePrev}
